@@ -1,0 +1,175 @@
+*qfmngr.txt*                           Saves/loads QuickFix lists to/from disk
+
+                                                                      *qfmngr*
+
+
+                           >>> QuickFix Manager <<<
+
+
+Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
+License:  MIT License
+Website:  https://github.com/monodesire/qfmngr/
+Version:  1.0.0
+
+
+==============================================================================
+Contents                                                     *qfmngr-contents*
+
+  1. Introduction         |qfmngr-introduction|
+  2. Requirements         |qfmngr-requirements|
+  3. Installation         |qfmngr-installation|
+  4. Usage                |qfmngr-usage|
+  5. Configuration        |qfmngr-configuration|
+  6. History              |qfmngr-history|
+  7. TODO                 |qfmngr-todo|
+  8. Credits              |qfmngr-credits|
+
+
+==============================================================================
+1. Introduction                                          *qfmngr-introduction*
+
+The QuickFix Manager plugin provides a simple user interface for saving and
+loading QuickFix lists to/from disk. Read about QuickFix here: |quickfix|
+
+So, if you have filled up a QuickFix list (with e.g. a compilation or a grep
+result) and want to access it at a later time, you can, with help of this
+plugin, save it to disk into a text file. While saving, you give it a save
+name, so you easily can identify each saved QuickFix list when you load them
+later.
+
+Vim does have built-in support for remembering multiple QuickFix lists, but
+only up to ten lists, and you cannot give them individual names, so it's
+harder to keep track of what's in what list. A bit rudimentary so to speak.
+See |quickfix-error-lists| for more information about Vim's built-in support.
+
+
+==============================================================================
+2. Requirements                                          *qfmngr-requirements*
+
+This plugin has been tested with Vim 7.3 in a Linux environment. Only the
+regular text-based Vim has been used in this testing, not gVim. There are
+probably no special requirements for this plugin to work.
+
+
+==============================================================================
+3. Installation                                          *qfmngr-installation*
+
+The installation of this plugin is simple. The official guidelines are found
+here: |add-global-plugin|
+
+In an essence, you need to copy qfmngr.vim (the actual plugin code) and
+qfmngr.txt (the help file) to somewhere in your |'runtimepath'|. For a
+standard Unix environment, this most likely means $HOME/.vim/plugin/ and
+$HOME/.vim/doc/ respectively.
+
+If you have a clone of the QuickFix Manager Git repository, you can add the
+path to it into 'runtimepath'.
+
+After installation, don't forget to run |:helptags| to generate help tags
+files, to includes help tags for this plugin. Here's an example of how to run
+this command: >
+
+  :helptags $VIMRUNTIME/doc
+
+
+==============================================================================
+4. Usage                                                        *qfmngr-usage*
+
+Save a QuickFix list~
+
+For saving the current QuickFix list, call the QuickFix Manager's save
+function like this: >
+
+  :call QFMNGR_SaveQuickFix()
+
+When you do so, you will be asked to input a save name, i.e. a name that
+identifies that particular list you are about to save. Any group of white
+spaces you put into the name, will be replaced by an underscore.
+
+The QuickFix list will be stored in a text file on disk, in the directory
+specified by global variable g:qfmngr_storageLocation. You may change the
+default value of this variable (see |qfmngr-configuration| on how to do it).
+
+The text files are named according to this pattern: >
+
+  qfmngr_<name>.txt
+
+Load a QuickFix list~
+
+For Loading a QuickFix list, call the QuickFix Manager's load function like
+this: >
+
+  :call QFMNGR_LoadQuickFix()
+
+The plugin will look for QuickFix lists in the directory specified by
+g:qfmngr_storageLocation. You will be presented by a list of available ones to
+select from. Make your choice and the chosen list will be loaded.
+
+
+==============================================================================
+5. Configuration                                        *qfmngr-configuration*
+
+Storage location~
+
+The plugin stores QuickFix lists onto disk. For the plugin to know where to
+store those files, it uses the following global variable: >
+
+  g:qfmngr_storageLocation
+
+Default value is "/tmp/". To set another value, put this line of code into
+your |vimrc|: >
+
+  let g:qfmngr_storageLocation = "/some/other/path/"
+
+Mappings~
+
+It is a good idea to map keys for the two functions explained in
+|qfmngr-usage|. For general information about mapping keys, see |key-mapping|.
+
+Here are two examples of what you could put into your |vimrc|: >
+
+  nnoremap <silent> <F2> :call QFMNGR_SaveQuickFix()<CR>
+  nnoremap <silent> <F3> :call QFMNGR_LoadQuickFix()<CR>
+
+With these two mappings, the F2 key would run the save QuickFix list function,
+while F3 will run the load function.
+
+
+==============================================================================
+6. History                                                    *qfmngr-history*
+
+This section specifies the version history of this plugin. Semantic versioning
+(http://semver.org/) is the version format used.
+
+
+1.0.0 (2015-06-08)
+      - Initial release.
+
+
+==============================================================================
+7. TODO                                                          *qfmngr-todo*
+
+- Test the plugin in gVim and in Windows.
+
+- Add the possibility to store QuickFix lists in "projects", so that a user
+  can work on totally different and unrelated tasks, and be able to save/load
+  lists logically attached to the current task only.
+
+- Make it possible for a user to delete QuickFix lists via the plugin's user
+  interface.
+
+- Make the plugin more robust, especially the file handling (save/load), and
+  the user input handling.
+
+
+==============================================================================
+8. Credits                                                    *qfmngr-credits*
+
+The QuickFix Manager plugin uses some QuickFix save and load code found in the
+following forum thread, in a post by a user called 'Peter Odding':
+
+http://vim.1045645.n5.nabble.com/Saving-the-Quickfix-List-td1179523.html
+
+
+==============================================================================
+vim: tw=78 ts=2 ft=help
