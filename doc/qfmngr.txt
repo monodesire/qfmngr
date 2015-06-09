@@ -9,7 +9,7 @@
 Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
 License:  MIT License
 Website:  https://github.com/monodesire/qfmngr/
-Version:  1.0.0
+Version:  1.1.0
 
 
 ==============================================================================
@@ -62,8 +62,11 @@ qfmngr.txt (the help file) to somewhere in your |'runtimepath'|. For a
 standard Unix environment, this most likely means $HOME/.vim/plugin/ and
 $HOME/.vim/doc/ respectively.
 
-If you have a clone of the QuickFix Manager Git repository, you can add the
-path to it into 'runtimepath'.
+If you have a clone of the QuickFix Manager Git repository, you may add the
+path to it into 'runtimepath'. Here's an example what you could put into your
+|vimrc| if you'd like to do that: >
+
+  let &runtimepath = &runtimepath . ',' . '/path/to/cloned/repo/'
 
 After installation, don't forget to run |:helptags| to generate help tags
 files, to includes help tags for this plugin. Here's an example of how to run
@@ -126,13 +129,21 @@ Mappings~
 It is a good idea to map keys for the two functions explained in
 |qfmngr-usage|. For general information about mapping keys, see |key-mapping|.
 
-Here are two examples of what you could put into your |vimrc|: >
+Here is one mapping example of what you could put into your |vimrc|: >
 
   nnoremap <silent> <F2> :call QFMNGR_SaveQuickFix()<CR>
   nnoremap <silent> <F3> :call QFMNGR_LoadQuickFix()<CR>
 
 With these two mappings, the F2 key would run the save QuickFix list function,
 while F3 will run the load function.
+
+Here's another mapping example: >
+
+  nnoremap <Leader>qs :call QFMNGR_SaveQuickFix()<CR>   " \qs
+  nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()()<CR> " \ql
+
+With the above mapping, the |<Leader>| key followed by either qs or ql is used
+to call the save and load functions respectively.
 
 
 ==============================================================================
@@ -142,6 +153,9 @@ This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
 
 
+1.1.0 (2015-06-09)
+      - Various updates made in this help file.
+
 1.0.0 (2015-06-08)
       - Initial release.
 
@@ -149,17 +163,9 @@ This section specifies the version history of this plugin. Semantic versioning
 ==============================================================================
 7. TODO                                                          *qfmngr-todo*
 
-- Test the plugin in gVim and in Windows.
+All TODOs are listed here:
 
-- Add the possibility to store QuickFix lists in "projects", so that a user
-  can work on totally different and unrelated tasks, and be able to save/load
-  lists logically attached to the current task only.
-
-- Make it possible for a user to delete QuickFix lists via the plugin's user
-  interface.
-
-- Make the plugin more robust, especially the file handling (save/load), and
-  the user input handling.
+https://github.com/monodesire/qfmngr/issues
 
 
 ==============================================================================
