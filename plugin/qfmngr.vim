@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      1.2.0
+" Version:      1.3.0
 " ##############################################################################
 
 
@@ -42,6 +42,19 @@ endif
 function! QFMNGR_SaveQuickFix()
   call s:printPluginBanner()
   let l:saveName = s:askForUserInput("Enter QuickFix list save name: ")
+
+  if l:saveName == ""
+    echo "ERROR! Empty user input. Save aborted.\n"
+    return
+  endif
+
+  if l:saveName =~# "[^a-zA-Z0-9_ ]"
+    " we end up here if the user has submitted a file name using other
+    " characters than a-z, A-Z, 0-9 and/or underscore
+    echo "ERROR! Illegal characters in user input. Save aborted.\n"
+    return
+  endif
+
   let l:filename = s:ConvertStringIntoProperFilename(l:saveName)
   call s:SaveQuickFixList(g:qfmngr_storageLocation . "/" . l:filename)
   echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" . l:filename . "\n"
@@ -87,6 +100,12 @@ function! QFMNGR_LoadQuickFix()
 
   let l:userInput = s:askForUserInput("\nSelect a QuickFix list to load " .
     \ l:selectOptions . ": ")
+
+  if l:userInput =~# "[^0-9]"
+    " we end up here if the user has submitted a non-numerical input
+    echo "ERROR! Illegal characters in user input. Nothing loaded.\n"
+    return
+  endif
 
   if l:userInput == 0
     echo "INFO! Operation aborted by user. Nothing loaded.\n"
