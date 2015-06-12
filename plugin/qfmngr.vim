@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      1.1.0
+" Version:      1.2.0
 " ##############################################################################
 
 

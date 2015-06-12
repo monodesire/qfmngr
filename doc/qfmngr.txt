@@ -9,7 +9,7 @@
 Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
 License:  MIT License
 Website:  https://github.com/monodesire/qfmngr/
-Version:  1.1.0
+Version:  1.2.0
 
 
 ==============================================================================
@@ -139,11 +139,12 @@ while F3 will run the load function.
 
 Here's another mapping example: >
 
-  nnoremap <Leader>qs :call QFMNGR_SaveQuickFix()<CR>   " \qs
-  nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()()<CR> " \ql
+  nnoremap <Leader>qs :call QFMNGR_SaveQuickFix()<CR>
+  nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()()<CR>
 
 With the above mapping, the |<Leader>| key followed by either qs or ql is used
-to call the save and load functions respectively.
+to call the save and load functions respectively. The leader key is by default
+set to backslash (\).
 
 
 ==============================================================================
@@ -152,6 +153,9 @@ to call the save and load functions respectively.
 This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
 
+
+1.2.0 (2015-06-12)
+      - Minor update in this help file.
 
 1.1.0 (2015-06-09)
       - Various updates made in this help file.
