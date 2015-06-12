@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      1.3.0
+" Version:      1.4.0
 " ##############################################################################
 
 
@@ -56,8 +56,13 @@ function! QFMNGR_SaveQuickFix()
   endif
 
   let l:filename = s:ConvertStringIntoProperFilename(l:saveName)
-  call s:SaveQuickFixList(g:qfmngr_storageLocation . "/" . l:filename)
-  echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" . l:filename . "\n"
+  let l:saveResult = s:SaveQuickFixList(g:qfmngr_storageLocation . "/" . l:filename)
+
+  if l:saveResult == -1
+    echo "ERROR! There was a problem writing to disk.\n"
+  else
+    echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" . l:filename . "\n"
+  endif
 endfunction
 
 
@@ -115,7 +120,13 @@ function! QFMNGR_LoadQuickFix()
     if l:userInput > 0
       if l:userInput <= l:counter
         let l:filename = s:TrimString(l:listOfFiles[l:userInput-1])
-        call s:LoadQuickFixList(l:filename)
+        let l:loadResult = s:LoadQuickFixList(l:filename)
+
+        if l:loadResult == -1
+          echo "ERROR! There was a problem loading from disk.\n"
+          return
+        endif
+
         echo "Loaded QuickFix list: " . l:filename . "\n"
         let l:loaded = 1
       endif
@@ -201,31 +212,48 @@ endfunction
 " ------------------------------------------------------------------------------
 " Function:    s:SaveQuickFixList
 " Description: Saves the current QuickFix list to disk. The function has been
-"              stolen with pride from this forum thread:
+"              stolen (but modified) from this forum thread:
 "       http://vim.1045645.n5.nabble.com/Saving-the-Quickfix-List-td1179523.html
+"              The function returns 0 if the write operation goes well,
+"              otherwise it returns -1.
 " ------------------------------------------------------------------------------
 function! s:SaveQuickFixList(fname)
- let list = getqflist()
- for i in range(len(list))
-  if has_key(list[i], 'bufnr')
-   let list[i].filename = fnamemodify(bufname(list[i].bufnr), ':p')
-   unlet list[i].bufnr
-  endif
- endfor
- let string = string(list)
- let lines = split(string, "\n")
- call writefile(lines, a:fname)
+  let l:list = getqflist()
+  for l:index in range(len(l:list))
+    if has_key(l:list[l:index], 'bufnr')
+      let l:list[l:index].filename = fnamemodify(bufname(l:list[l:index].bufnr), ':p')
+      unlet l:list[l:index].bufnr
+    endif
+  endfor
+  let l:string = string(l:list)
+  let l:lines = split(l:string, "\n")
+
+  try
+    call writefile(l:lines, a:fname)
+  catch
+    return -1
+  endtry
+  
+  return 0
 endfunction
 
 
 " ------------------------------------------------------------------------------
 " Function:    s:LoadQuickFixList
 " Description: Loads a QuickFix list from disk. The function has been stolen
-"              with pride from this forum thread:
+"              (but modified) from this forum thread:
 "       http://vim.1045645.n5.nabble.com/Saving-the-Quickfix-List-td1179523.html
+"              The function returns 0 if the read operation goes well,
+"              otherwise it returns -1.
 " ------------------------------------------------------------------------------
 function! s:LoadQuickFixList(fname)
- let lines = readfile(a:fname)
- let string = join(lines, "\n")
- call setqflist(eval(string))
+  try
+    let l:lines = readfile(a:fname)
+  catch
+    return -1
+  endtry
+
+  let l:string = join(l:lines, "\n")
+  call setqflist(eval(l:string))
+  return 0
 endfunction
