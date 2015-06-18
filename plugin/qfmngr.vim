@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      1.4.0
+" Version:      2.0.0
 " ##############################################################################
 
 
@@ -41,7 +41,11 @@ endif
 " ------------------------------------------------------------------------------
 function! QFMNGR_SaveQuickFix()
   call s:printPluginBanner()
-  let l:saveName = s:askForUserInput("Enter QuickFix list save name: ")
+  echo "About to save current QuickFix list.\n\n"
+
+  let l:saveName = s:askForUserInput("Enter QuickFix list save name " .
+    \ "(abort save by giving a blank name): ")
+  let l:saveName = s:TrimString(l:saveName)
 
   if l:saveName == ""
     echo "ERROR! Empty user input. Save aborted.\n"
@@ -73,8 +77,8 @@ endfunction
 "              list which one to load.
 " ------------------------------------------------------------------------------
 function! QFMNGR_LoadQuickFix()
-
   call s:printPluginBanner()
+  echo "About to load a QuickFix list.\n\n"
 
   echo "Available QuickFix lists:\n\n"
 
@@ -91,7 +95,7 @@ function! QFMNGR_LoadQuickFix()
   endfor
 
   if l:counter == 0
-    echo "INFO! Did not find any QuickFix lists on disk. Nothing loaded.\n"
+    echo "Did not find any QuickFix lists on disk. Nothing loaded.\n"
     return
   endif
 
@@ -113,7 +117,7 @@ function! QFMNGR_LoadQuickFix()
   endif
 
   if l:userInput == 0
-    echo "INFO! Operation aborted by user. Nothing loaded.\n"
+    echo "Operation aborted by user. Nothing loaded.\n"
     return
   else
     let l:loaded = 0
@@ -138,6 +142,74 @@ function! QFMNGR_LoadQuickFix()
     echo "Press any key to continue."
     let c = getchar()
   endif
+endfunction
+
+
+" ------------------------------------------------------------------------------
+" Function:    QFMNGR_ClearQuickFix
+" Description: Clears (empties) the current QuickFix list.
+" ------------------------------------------------------------------------------
+function! QFMNGR_ClearQuickFix()
+  call s:printPluginBanner()
+  echo "About to clear the current QuickFix list.\n\n"
+
+  let l:userInput = s:askForUserInput("Really want to clear current QuickFix " .
+    \ "list (y/n)? ")
+
+  let l:userInput = s:TrimString(l:userInput)
+
+  if l:userInput ==? "y"
+    let l:result = setqflist([])
+
+    if l:result == -1
+      echo "ERROR! Something went wrong when trying to clear the current " .
+        / "QuickFix list."
+    else
+      echo "Current QuickFix list has been cleared.\n"
+    endif
+  else
+    echo "Clear operation aborted.\n"
+    return
+  endif
+endfunction
+
+
+" ------------------------------------------------------------------------------
+" Function:    QFMNGR_AddToQuickFix
+" Description: Adds file and line number of the cursor's current position into
+"              the current QuickFix list.
+" ------------------------------------------------------------------------------
+function! QFMNGR_AddToQuickFix()
+  call s:printPluginBanner()
+  echo "About to add an entry into the current QuickFix list.\n\n"
+
+  let l:filename = expand('%:p')
+  let l:lineNumber = line(".")
+  let l:lineText = getline(".")
+
+  echo "<text> + <enter> :  Input any descriptive text."
+  echo "<enter>          :  Accept line under cursor."
+  echo "CANCEL + <enter> :  Cancels the add operation."
+
+  let l:userInput = s:askForUserInput("\nEnter a description for the new " .
+    \ "entry: ")
+
+  let l:userInput = s:TrimString(l:userInput)
+
+  if l:userInput ==# "CANCEL"
+    echo "Operation aborted by user. Nothing added.\n"
+    return
+  elseif l:userInput != ""
+    let l:lineText = l:userInput
+  endif
+
+  call setqflist([{'filename': l:filename, 'lnum': l:lineNumber,
+    \ 'text': l:lineText}], 'a')
+
+  echo "Added the following into the current QuickFix list:\n\n"
+
+  echo l:filename . ":" . l:lineNumber
+  echo l:lineText . "\n"
 endfunction
 
 

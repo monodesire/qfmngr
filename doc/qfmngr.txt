@@ -1,4 +1,5 @@
-*qfmngr.txt*                           Saves/loads QuickFix lists to/from disk
+*qfmngr.txt*                          For creating custom-made QuickFix lists,
+                                              and save/load them to/from disk.
 
                                                                       *qfmngr*
 
@@ -9,7 +10,7 @@
 Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
 License:  MIT License
 Website:  https://github.com/monodesire/qfmngr/
-Version:  1.4.0
+Version:  2.0.0
 
 
 ==============================================================================
@@ -28,19 +29,30 @@ Contents                                                     *qfmngr-contents*
 ==============================================================================
 1. Introduction                                          *qfmngr-introduction*
 
-The QuickFix Manager plugin provides a simple user interface for saving and
-loading QuickFix lists to/from disk. Read about QuickFix here: |quickfix|
+The QuickFix Manager plugin provides a simple user interface for creating
+custom-made QuickFix lists. What it means is that it gives you an easy way of
+adding entries into the current QuickFix list. The entry added will consist of
+the cursor's current position (filename + line number). It will also be tagged
+with the text of the current line or any descriptive text you input yourself.
 
-So, if you have filled up a QuickFix list (with e.g. a compilation or a grep
-result) and want to access it at a later time, you can, with help of this
+The QuickFix Manager plugin also provides a simple way of saving and loading
+QuickFix lists to/from disk.
+
+So, if you have filled up a QuickFix list (by using this plugin's add feature
+for building up a list by yourselves or by the result of e.g. a compilation or
+a grep) and want to access it at a later time, you can, with help of this
 plugin, save it to disk into a text file. While saving, you give it a save
-name, so you easily can identify each saved QuickFix list when you load them
-later.
+name, so you easily can identify each saved QuickFix list when you want to
+load them later.
 
 Vim does have built-in support for remembering multiple QuickFix lists, but
 only up to ten lists, and you cannot give them individual names, so it's
 harder to keep track of what's in what list. A bit rudimentary so to speak.
-See |quickfix-error-lists| for more information about Vim's built-in support.
+
+For general information about QuickFix, go here: |quickfix|
+
+See |quickfix-error-lists| for more information about Vim's built-in support
+of multiple QuickFix lists.
 
 
 ==============================================================================
@@ -77,6 +89,36 @@ this command: >
 
 ==============================================================================
 4. Usage                                                        *qfmngr-usage*
+
+Add an entry into the current QuickFix list~
+
+For adding the current position of the cursor into the current QuickFix list,
+call the QuickFix Manager's add function: >
+
+  :call QFMNGR_AddToQuickFix()
+
+You will be prompted with three choices:
+
+  (a) Either you enter a descriptive text for this entry and then presses
+      <enter>; or
+
+  (b) You just presses <enter> to accept the text of the line which is under
+      the cursor; or
+
+  (c) Cancels the add operation altogether by entering the word "CANCEL"
+      followed by an <enter>.
+
+If you do not do (c), one entry will be added into the current QuickFix list.
+The entry will contain the filename (plus its full path) and the line number
+of the cursor's current position. It will also contain a tag, which is either
+your own text (a) or what was under the cursor (b).
+
+Clear the current QuickFix list~
+
+For clearing (emptying) the current QuickFix list, call the QuickFix Manager's
+clear function: >
+
+  :call QFMNGR_ClearQuickFix()
 
 Save a QuickFix list~
 
@@ -127,25 +169,30 @@ your |vimrc|: >
 
 Mappings~
 
-It is a good idea to map keys for the two functions explained in
+It is a good idea to map keys for the four functions explained in
 |qfmngr-usage|. For general information about mapping keys, see |key-mapping|.
 
-Here is one mapping example of what you could put into your |vimrc|: >
+Here are some mapping examples of what you could put into your |vimrc|: >
 
-  nnoremap <silent> <F2> :call QFMNGR_SaveQuickFix()<CR>
-  nnoremap <silent> <F3> :call QFMNGR_LoadQuickFix()<CR>
+  nnoremap <silent> <F5> :call QFMNGR_AddToQuickFix()<CR>
+  nnoremap <silent> <F6> :call QFMNGR_ClearQuickFix()<CR>
+  nnoremap <silent> <F7> :call QFMNGR_SaveQuickFix()<CR>
+  nnoremap <silent> <F8> :call QFMNGR_LoadQuickFix()<CR>
 
-With these two mappings, the F2 key would run the save QuickFix list function,
-while F3 will run the load function.
+With these four mappings, the F5 key would run the add to QuickFix list
+function, the F6 key would run the clear list function, the F7 key would run
+the save function, while the F8 key would run the load function.
 
-Here's another mapping example: >
+Here are some other mapping examples: >
 
+  nnoremap <Leader>qa :call QFMNGR_AddToQuickFix()<CR>
+  nnoremap <Leader>qc :call QFMNGR_ClearQuickFix()<CR>
   nnoremap <Leader>qs :call QFMNGR_SaveQuickFix()<CR>
-  nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()()<CR>
+  nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()<CR>
 
-With the above mapping, the |<Leader>| key followed by either qs or ql is used
-to call the save and load functions respectively. The leader key is by default
-set to backslash (\).
+With the above mapping, the |<Leader>| key followed by either qa, qc, qs or ql
+is used to call the add, clear, save and load functions respectively. The
+leader key is by default set to backslash (\).
 
 
 ==============================================================================
@@ -154,6 +201,10 @@ set to backslash (\).
 This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
 
+2.0.0 (2015-06-18)
+      - Added functionality to clear current QuickFix list.
+      - Added functionality to add line under cursor into current QuickFix
+        list.
 
 1.4.0 (2015-06-12)
       - Added error handling for the disk operations.
