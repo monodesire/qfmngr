@@ -2,9 +2,13 @@
 
 ## Introduction
 
-The QuickFix Manager is a Vim plugin that makes it possible to save/load QuickFix lists to/from disk. It provides a simple user interface to make it easy for the user to save and load lists. While saving a list, the user is asked to give the list a name. While loading, the plugin will list all previously saved lists and ask the user to select one of them to load.
+The QuickFix Manager is a Vim plugin that provides a simple user interface for creating custom-made QuickFix lists, and to save/load them to/from disk.
 
-Vim does have built-in support for remembering multiple QuickFix lists, but only up to ten lists, and they cannot be given individual names, so it's harder to keep track of what's in what list. A bit rudimentary so to speak. This plugin is an attempt to overcome that limitation.
+Custom-made QuickFix lists are created by adding entries into the current QuickFix list. An entry added will consist of the cursor's current position (filename + line number). It will also be tagged with the text of the current line or any descriptive text you input yourself.
+
+While saving a QuickFix list to disk, the user is asked to give the list a name. While loading, the plugin will list all previously saved QuickFix lists and ask the user to select one of them to load.
+
+Vim does have built-in support for remembering multiple QuickFix lists, but only up to ten lists, and they cannot be given individual names, so it's harder to keep track of what's in what QuickFix list. A bit rudimentary so to speak. This plugin is an attempt to overcome that limitation.
 
 ## Requirements
 
@@ -27,6 +31,14 @@ Goto the configuration section in the plugin's help by running this command:
 :help qfmngr-configuration
 
 ## How to use
+
+For adding an entry to the current QuickFix list, run this command:
+
+:call QFMNGR_AddToQuickFix()
+
+To clear the current QuickFix list, run this command:
+
+:call QFMNGR_ClearQuickFix()
 
 To save the current QuickFix list, run this command:
 
