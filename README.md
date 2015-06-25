@@ -10,6 +10,8 @@ While saving a QuickFix list to disk, the user is asked to give the list a name.
 
 Vim does have built-in support for remembering multiple QuickFix lists, but only up to ten lists, and they cannot be given individual names, so it's harder to keep track of what's in what QuickFix list. A bit rudimentary so to speak. This plugin is an attempt to overcome that limitation.
 
+The QuickFix Manager also has the ability of storing QuickFix lists in different, so called, projects. It's a way of logically group a number of QuickFix lists, that e.g. belong to the same task or work package.
+
 ## Requirements
 
 This plugin has been tested with Vim 7.3 in a Linux environment. Only the regular text-based Vim has been used in this testing, not gVim. There are probably no special requirements for this plugin to work.
@@ -48,7 +50,7 @@ To load a QuickFix list, run this command:
 
 :call QFMNGR_LoadQuickFix()
 
-For deeper understanding, please read the plugin's help:
+For deeper understanding, and for finding out more features, please read the plugin's help:
 
 :help qfmngr
 
