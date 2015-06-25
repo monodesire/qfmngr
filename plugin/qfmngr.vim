@@ -6,12 +6,12 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      2.0.0
+" Version:      3.0.0
 " ##############################################################################
 
 
 " ==============================================================================
-" Main (will be executed at startup of Vim)
+" Main (will be executed at startup of Vim when this plugin is loaded)
 " ==============================================================================
 
 " make sure the script has not already been loaded and that we are not in Vi
@@ -22,11 +22,21 @@ if &cp || exists('g:loaded_qfmngr')
 endif
 let g:loaded_qfmngr = 1
 
-" sets the default storage location (on disk) of QuickFix lists to /tmp/ if the
-" user has not specified anything else (in his/her .vimrc)
+" global variable: qfmngr_storageLocation
+"   sets the default storage location (on disk) of QuickFix lists to /tmp/ if
+"   the user has not specified anything else (in his/her .vimrc)
 
 if !exists('g:qfmngr_storageLocation')
     let g:qfmngr_storageLocation = "/tmp/"
+endif
+
+" global variable: qfmngr_activeProject
+"   indicates which project is the active one; may be altered via e.g. .vimrc
+"   or by functionality from within this plugin; an empty string indicates the
+"   default project (i.e. no specific project)
+
+if !exists('g:qfmngr_activeProject')
+    let g:qfmngr_activeProject = ""
 endif
 
 
@@ -42,6 +52,14 @@ endif
 function! QFMNGR_SaveQuickFix()
   call s:printPluginBanner()
   echo "About to save current QuickFix list.\n\n"
+
+  let l:tempActiveProject = "(default)"
+  if g:qfmngr_activeProject != ""
+    let l:tempActiveProject =
+      \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject)
+  endif
+
+  echo "Current active project: " . l:tempActiveProject . "\n\n"
 
   let l:saveName = s:askForUserInput("Enter QuickFix list save name " .
     \ "(abort save by giving a blank name): ")
@@ -60,12 +78,21 @@ function! QFMNGR_SaveQuickFix()
   endif
 
   let l:filename = s:ConvertStringIntoProperFilename(l:saveName)
-  let l:saveResult = s:SaveQuickFixList(g:qfmngr_storageLocation . "/" . l:filename)
+
+  let l:saveResult = 0
+  if g:qfmngr_activeProject == ""
+    let l:saveResult = s:SaveQuickFixList(g:qfmngr_storageLocation . "/" .
+      \ l:filename)
+  else
+    call s:createDirectoryIfItDoesNotExist(g:qfmngr_activeProject)
+    let l:saveResult = s:SaveQuickFixList(g:qfmngr_activeProject . "/" .
+      \ l:filename)
+  endif
 
   if l:saveResult == -1
     echo "ERROR! There was a problem writing to disk.\n"
   else
-    echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" . l:filename . "\n"
+    echo "Saved QuickFix list: " . l:saveName . "\n"
   endif
 endfunction
 
@@ -80,11 +107,24 @@ function! QFMNGR_LoadQuickFix()
   call s:printPluginBanner()
   echo "About to load a QuickFix list.\n\n"
 
+  let l:tempActiveProject = "(default)"
+  if g:qfmngr_activeProject != ""
+    let l:tempActiveProject =
+      \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject)
+  endif
+
+  echo "Current active project: " . l:tempActiveProject . "\n\n"
+
   echo "Available QuickFix lists:\n\n"
 
   " find and print available QuickFix lists
 
-  let l:fileSearch = globpath(g:qfmngr_storageLocation, 'qfmngr_*.txt')
+  if g:qfmngr_activeProject == ""
+    let l:fileSearch = globpath(g:qfmngr_storageLocation, 'qfmngr_*.txt')
+  else
+    let l:fileSearch = globpath(g:qfmngr_activeProject, 'qfmngr_*.txt')
+  endif
+
   let l:listOfFiles = split(l:fileSearch)
 
   let l:counter = 0
@@ -138,7 +178,7 @@ function! QFMNGR_LoadQuickFix()
   endif
 
   if l:loaded == 0
-    echo "\nERROR! Input out-of-range. No QuickFix list loaded.\n\n"
+    echo "ERROR! Input out-of-range. No QuickFix list loaded.\n\n"
     echo "Press any key to continue."
     let c = getchar()
   endif
@@ -213,6 +253,98 @@ function! QFMNGR_AddToQuickFix()
 endfunction
 
 
+" ------------------------------------------------------------------------------
+" Function:    QFMNGR_ChangeActiveProject
+" Description: Changes the active project from one to another.
+" ------------------------------------------------------------------------------
+function! QFMNGR_ChangeActiveProject()
+  call s:printPluginBanner()
+  echo "About to change the active project.\n\n"
+
+  let l:tempActiveProject = "(default)"
+  if g:qfmngr_activeProject != ""
+    let l:tempActiveProject =
+      \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject)
+  endif
+
+  echo "Current active project: " . l:tempActiveProject . "\n\n"
+
+  echo "Available projects:\n\n"
+
+  " search the file system for QFMNGR projects
+
+  let l:directorySearch = globpath(g:qfmngr_storageLocation, 'qfmngr_proj_*')
+  let l:potentialProjects = split(l:directorySearch)
+  let l:projects = ["(default)"]
+
+  for l:index in range(len(l:potentialProjects))  " remove files from list
+    if ! filereadable(l:potentialProjects[l:index])
+      call add(l:projects, l:potentialProjects[l:index])
+    endif
+  endfor
+
+  let l:counter = 0
+  for l:index in range(len(l:projects))
+    let l:counter += 1
+
+    if l:projects[l:index] == "(default)"
+      echo "[" . l:counter . "] (default)"
+    else
+      echo "[" . l:counter . "] " .
+        \ s:extractProjNameFromDirectoryName(l:projects[l:index])
+    endif
+  endfor
+
+  " ask user what project to change to
+
+  let l:selectOptions = "(projects=1-" . l:counter . "; abort=0)"
+
+  if l:counter == 1
+    let l:selectOptions = "(project=1; abort=0)"
+  endif
+
+  let l:userInput = s:askForUserInput("\nSelect a project to change to " .
+    \ l:selectOptions . ": ")
+
+  if l:userInput =~# "[^0-9]"
+    " we end up here if the user has submitted a non-numerical input
+    echo "ERROR! Illegal characters in user input. Nothing loaded.\n"
+    return
+  endif
+
+  if l:userInput == 0
+    echo "Operation aborted by user. Nothing loaded.\n"
+    return
+  else
+    let l:changedProject = 0
+    if l:userInput > 0
+      if l:userInput <= l:counter
+        if l:userInput == 1  " default project always at this index
+          let g:qfmngr_activeProject = ""
+        else
+          let g:qfmngr_activeProject = l:projects[l:userInput-1]
+        endif
+
+        if g:qfmngr_activeProject == ""
+          echo "Changed to this project: (default)\n"
+        else
+          echo "Changed to this project: " .
+            \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject) . "\n"
+        endif
+
+        let l:changedProject = 1
+      endif
+    endif
+  endif
+
+  if l:changedProject == 0
+    echo "ERROR! Input out-of-range. No project change.\n\n"
+    echo "Press any key to continue."
+    let c = getchar()
+  endif
+endfunction
+
+
 " ==============================================================================
 " SCRIPT INTERNAL FUNCTIONS
 " ==============================================================================
@@ -272,6 +404,20 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
+" Function:    s:extractProjNameFromDirectoryName
+" Description: Takes a string containing a path and a directory name, and
+"              extracts only the directory name (and returns it).
+"              Example: If the input string is "/tmp/qfmngr_proj_pa28", then
+"              the returned string (i.e. the project name) will be "pa28".
+" ------------------------------------------------------------------------------
+function! s:extractProjNameFromDirectoryName(fullPath)
+    let l:projName = matchstr(a:fullPath, 'qfmngr_proj_.\+')
+    let l:projName = matchstr(l:projName, '[^\.]\+', 12)
+    return l:projName
+endfunction
+
+
+" ------------------------------------------------------------------------------
 " Function:    s:TrimString
 " Description: Removes leading and trailing whitespaces of a string.
 " ------------------------------------------------------------------------------
@@ -305,7 +451,7 @@ function! s:SaveQuickFixList(fname)
   catch
     return -1
   endtry
-  
+
   return 0
 endfunction
 
@@ -328,4 +474,16 @@ function! s:LoadQuickFixList(fname)
   let l:string = join(l:lines, "\n")
   call setqflist(eval(l:string))
   return 0
+endfunction
+
+
+" ------------------------------------------------------------------------------
+" Function:    s:createDirectoryIfItDoesNotExist
+" Description: Creates a directory given as input (optionally together with its
+"              path) if it does not already exist.
+" ------------------------------------------------------------------------------
+function! s:createDirectoryIfItDoesNotExist(newDirectory)
+  if !isdirectory(a:newDirectory)
+    call mkdir(a:newDirectory, "", 0755)
+  endif
 endfunction

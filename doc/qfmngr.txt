@@ -10,7 +10,7 @@
 Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
 License:  MIT License
 Website:  https://github.com/monodesire/qfmngr/
-Version:  2.0.0
+Version:  3.0.0
 
 
 ==============================================================================
@@ -53,6 +53,11 @@ For general information about QuickFix, go here: |quickfix|
 
 See |quickfix-error-lists| for more information about Vim's built-in support
 of multiple QuickFix lists.
+
+The QuickFix Manager plugin also has functionality to store saved QuickFix
+lists within different projects. This is an optional feature, but might be
+handy to use when you want to logically group several saved QuickFix lists
+that are belonging to the same project, task, work package etc.
 
 
 ==============================================================================
@@ -151,6 +156,25 @@ The plugin will look for QuickFix lists in the directory specified by
 g:qfmngr_storageLocation. You will be presented by a list of available ones to
 select from. Make your choice and the chosen list will be loaded.
 
+Change active project~
+
+To change the active project, i.e. go from one project to another, this is the
+function to call: >
+
+  :call QFMNGR_ChangeActiveProject()
+
+The active project is a pointer that tells the plugin to which project to save
+into when saving a QuickFix list and which project to load from when loading a
+QuickFix list. There is a default project denoted as "(default)". If you have
+no other projects, the default project will be used for saving/loading of
+QuickFix lists. The active project can be changed via the above mentioned
+function call, but also through the |.vimrc| file (see
+|qfmngr-configuration|).
+
+Projects are stored as sub-directories of g:qfmngr_storageLocation (see
+*qfmngr-configuration* for more details regarding this global variable). The
+default project is located in the root of g:qfmngr_storageLocation.
+
 
 ==============================================================================
 5. Configuration                                        *qfmngr-configuration*
@@ -167,9 +191,18 @@ your |vimrc|: >
 
   let g:qfmngr_storageLocation = "/some/other/path/"
 
+Active projects~
+
+The active project may be set via this global variable: >
+
+  g:qfmngr_activeProject
+
+The default value of this is "" (an empty string), indicating the default
+project.
+
 Mappings~
 
-It is a good idea to map keys for the four functions explained in
+It is a good idea to map keys for the five functions explained in
 |qfmngr-usage|. For general information about mapping keys, see |key-mapping|.
 
 Here are some mapping examples of what you could put into your |vimrc|: >
@@ -178,10 +211,12 @@ Here are some mapping examples of what you could put into your |vimrc|: >
   nnoremap <silent> <F6> :call QFMNGR_ClearQuickFix()<CR>
   nnoremap <silent> <F7> :call QFMNGR_SaveQuickFix()<CR>
   nnoremap <silent> <F8> :call QFMNGR_LoadQuickFix()<CR>
+  nnoremap <silent> <F9> :call QFMNGR_ChangeActiveProject()<CR>
 
-With these four mappings, the F5 key would run the add to QuickFix list
+With these five mappings, the F5 key would run the add to QuickFix list
 function, the F6 key would run the clear list function, the F7 key would run
-the save function, while the F8 key would run the load function.
+the save function, the F8 key would run the load function, while the F9 key
+would run the change project function.
 
 Here are some other mapping examples: >
 
@@ -189,10 +224,11 @@ Here are some other mapping examples: >
   nnoremap <Leader>qc :call QFMNGR_ClearQuickFix()<CR>
   nnoremap <Leader>qs :call QFMNGR_SaveQuickFix()<CR>
   nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()<CR>
+  nnoremap <Leader>qpc :call QFMNGR_ChangeActiveProject()<CR>
 
-With the above mapping, the |<Leader>| key followed by either qa, qc, qs or ql
-is used to call the add, clear, save and load functions respectively. The
-leader key is by default set to backslash (\).
+With the above mapping, the |<Leader>| key followed by either qa, qc, qs, ql
+or qpc is used to call the add, clear, save, load or change project functions
+respectively. The leader key is by default set to backslash (\).
 
 
 ==============================================================================
@@ -200,6 +236,9 @@ leader key is by default set to backslash (\).
 
 This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
+
+3.0.0 (2015-06-25)
+      - Added the ability to change project within the plugin.
 
 2.0.0 (2015-06-18)
       - Added functionality to clear current QuickFix list.
