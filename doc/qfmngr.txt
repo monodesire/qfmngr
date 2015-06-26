@@ -255,6 +255,9 @@ default set to backslash (\).
 This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
 
+4.0.1 (2015-06-26)
+      - Minor bug fixes.
+
 4.0.0 (2015-06-26)
       - Added the ability to create a project.
 

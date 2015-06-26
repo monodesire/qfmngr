@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      4.0.0
+" Version:      4.0.1
 " ##############################################################################
 
 
@@ -95,6 +95,7 @@ function! QFMNGR_SaveQuickFix()
       echo "       Directory that couldn't be created: " .
         \ g:qfmngr_storageLocation . "/" .
         \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject) . "\n"
+      return
     endif
 
     let l:saveResult = s:SaveQuickFixList(g:qfmngr_storageLocation . "/" .
@@ -105,7 +106,14 @@ function! QFMNGR_SaveQuickFix()
   if l:saveResult == -1
     echo "ERROR! There was a problem writing to disk.\n"
   else
-    echo "Saved QuickFix list: " . l:saveName . "\n"
+    if g:qfmngr_activeProject == ""
+      echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" .
+        \ l:filename . "\n"
+    else
+      echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" .
+        \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject) .
+        \ l:filename . "\n"
+    endif
   endif
 endfunction
 
