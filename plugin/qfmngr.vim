@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      3.0.0
+" Version:      4.0.0
 " ##############################################################################
 
 
@@ -22,18 +22,20 @@ if &cp || exists('g:loaded_qfmngr')
 endif
 let g:loaded_qfmngr = 1
 
-" global variable: qfmngr_storageLocation
-"   sets the default storage location (on disk) of QuickFix lists to /tmp/ if
-"   the user has not specified anything else (in his/her .vimrc)
+" Global variable: qfmngr_storageLocation
+"   Sets the default storage location (on disk) of QuickFix lists to /tmp/ if
+"   the user has not specified anything else (in his/her .vimrc).
 
 if !exists('g:qfmngr_storageLocation')
     let g:qfmngr_storageLocation = "/tmp/"
 endif
 
-" global variable: qfmngr_activeProject
-"   indicates which project is the active one; may be altered via e.g. .vimrc
-"   or by functionality from within this plugin; an empty string indicates the
-"   default project (i.e. no specific project)
+" Global variable: qfmngr_activeProject
+"   Indicates which project is the active one. May be altered via e.g. .vimrc
+"   or by functionality from within this plugin. An empty string indicates the
+"   default project (i.e. no specific project). The full (file system) path
+"   to a project is defined like this:
+"       g:qfmngr_storageLocation . "/qfmngrproj_" . g:qfmngr_activeProject
 
 if !exists('g:qfmngr_activeProject')
     let g:qfmngr_activeProject = ""
@@ -55,8 +57,7 @@ function! QFMNGR_SaveQuickFix()
 
   let l:tempActiveProject = "(default)"
   if g:qfmngr_activeProject != ""
-    let l:tempActiveProject =
-      \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject)
+    let l:tempActiveProject = g:qfmngr_activeProject
   endif
 
   echo "Current active project: " . l:tempActiveProject . "\n\n"
@@ -72,20 +73,32 @@ function! QFMNGR_SaveQuickFix()
 
   if l:saveName =~# "[^a-zA-Z0-9_ ]"
     " we end up here if the user has submitted a file name using other
-    " characters than a-z, A-Z, 0-9 and/or underscore
+    " characters than a-z, A-Z, 0-9, underscore and/or space
     echo "ERROR! Illegal characters in user input. Save aborted.\n"
     return
   endif
 
-  let l:filename = s:ConvertStringIntoProperFilename(l:saveName)
+  let l:filename = s:convertStringIntoProperFilename(l:saveName)
 
   let l:saveResult = 0
   if g:qfmngr_activeProject == ""
     let l:saveResult = s:SaveQuickFixList(g:qfmngr_storageLocation . "/" .
       \ l:filename)
   else
-    call s:createDirectoryIfItDoesNotExist(g:qfmngr_activeProject)
-    let l:saveResult = s:SaveQuickFixList(g:qfmngr_activeProject . "/" .
+    let l:createResult =
+      \ s:createDirectoryIfItDoesNotExist(g:qfmngr_storageLocation . "/" .
+      \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject))
+
+    if l:createResult == -1
+      echo "ERROR! There was a problem creating the project " .
+        \ "(i.e. a directory) on disk.\n"
+      echo "       Directory that couldn't be created: " .
+        \ g:qfmngr_storageLocation . "/" .
+        \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject) . "\n"
+    endif
+
+    let l:saveResult = s:SaveQuickFixList(g:qfmngr_storageLocation . "/" .
+      \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject) . "/" .
       \ l:filename)
   endif
 
@@ -109,8 +122,7 @@ function! QFMNGR_LoadQuickFix()
 
   let l:tempActiveProject = "(default)"
   if g:qfmngr_activeProject != ""
-    let l:tempActiveProject =
-      \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject)
+    let l:tempActiveProject = g:qfmngr_activeProject
   endif
 
   echo "Current active project: " . l:tempActiveProject . "\n\n"
@@ -122,7 +134,9 @@ function! QFMNGR_LoadQuickFix()
   if g:qfmngr_activeProject == ""
     let l:fileSearch = globpath(g:qfmngr_storageLocation, 'qfmngr_*.txt')
   else
-    let l:fileSearch = globpath(g:qfmngr_activeProject, 'qfmngr_*.txt')
+    let l:fileSearch = globpath(g:qfmngr_storageLocation . "/" .
+      \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject),
+      \ 'qfmngr_*.txt')
   endif
 
   let l:listOfFiles = split(l:fileSearch)
@@ -263,8 +277,7 @@ function! QFMNGR_ChangeActiveProject()
 
   let l:tempActiveProject = "(default)"
   if g:qfmngr_activeProject != ""
-    let l:tempActiveProject =
-      \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject)
+    let l:tempActiveProject = g:qfmngr_activeProject
   endif
 
   echo "Current active project: " . l:tempActiveProject . "\n\n"
@@ -273,7 +286,7 @@ function! QFMNGR_ChangeActiveProject()
 
   " search the file system for QFMNGR projects
 
-  let l:directorySearch = globpath(g:qfmngr_storageLocation, 'qfmngr_proj_*')
+  let l:directorySearch = globpath(g:qfmngr_storageLocation, 'qfmngrproj_*')
   let l:potentialProjects = split(l:directorySearch)
   let l:projects = ["(default)"]
 
@@ -322,14 +335,14 @@ function! QFMNGR_ChangeActiveProject()
         if l:userInput == 1  " default project always at this index
           let g:qfmngr_activeProject = ""
         else
-          let g:qfmngr_activeProject = l:projects[l:userInput-1]
+          let g:qfmngr_activeProject =
+            \ s:extractProjNameFromDirectoryName(l:projects[l:userInput-1])
         endif
 
         if g:qfmngr_activeProject == ""
           echo "Changed to this project: (default)\n"
         else
-          echo "Changed to this project: " .
-            \ s:extractProjNameFromDirectoryName(g:qfmngr_activeProject) . "\n"
+          echo "Changed to this project: " . g:qfmngr_activeProject . "\n"
         endif
 
         let l:changedProject = 1
@@ -342,6 +355,50 @@ function! QFMNGR_ChangeActiveProject()
     echo "Press any key to continue."
     let c = getchar()
   endif
+endfunction
+
+
+" ------------------------------------------------------------------------------
+" Function:    QFMNGR_CreateNewProject
+" Description: Creates a new project.
+" ------------------------------------------------------------------------------
+function! QFMNGR_CreateNewProject()
+  call s:printPluginBanner()
+  echo "About to create a new project.\n\n"
+
+  let l:projectName = s:askForUserInput("Enter name of new project " .
+    \ "(abort creation by giving a blank name): ")
+  let l:projectName = s:TrimString(l:projectName)
+
+  if l:projectName == ""
+    echo "ERROR! Empty user input. Creation aborted.\n"
+    return
+  endif
+
+  if l:projectName =~# "[^a-zA-Z0-9_ ]"
+    " we end up here if the user has submitted a file name using other
+    " characters than a-z, A-Z, 0-9, underscore and/or space
+    echo "ERROR! Illegal characters in user input. Save aborted.\n"
+    return
+  endif
+
+  let l:projectName = s:convertStringIntoProperProjectName(l:projectName)
+  let l:fullPathOfProject = g:qfmngr_storageLocation . "/" . l:projectName
+
+  let l:createResult = s:createDirectoryIfItDoesNotExist(l:fullPathOfProject)
+
+  if l:createResult == -1
+    echo "ERROR! There was a problem creating the project " .
+      \ "(i.e. a directory) on disk.\n"
+    echo "       Directory that couldn't be created: " . l:fullPathOfProject .
+      \ "\n"
+    return
+  endif
+
+  let g:qfmngr_activeProject = s:extractProjNameFromDirectoryName(l:projectName)
+
+  echo "New project created. Also changed to it as new active project: " .
+    \ g:qfmngr_activeProject . "\n"
 endfunction
 
 
@@ -376,12 +433,12 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
-" Function:    s:ConvertStringIntoProperFilename
+" Function:    s:convertStringIntoProperFilename
 " Description: Converts a string into a nicely formatted filename by
 "              substituting whitespaces with underscore, adding 'qfmngr_' in the
 "              beginning, and adding '.txt' in the end.
 " ------------------------------------------------------------------------------
-function! s:ConvertStringIntoProperFilename(stringToFix)
+function! s:convertStringIntoProperFilename(stringToFix)
   let l:filename = s:TrimString(a:stringToFix)
   let l:filename = substitute(l:filename, '\s\+', '_', 'g')
   let l:filename = "qfmngr_" . l:filename . ".txt"
@@ -390,9 +447,23 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
+" Function:    s:convertStringIntoProperProjectName
+" Description: Converts a string into a nicely formatted project name by
+"              substituting whitespaces with underscore, and by adding
+"              'qfmngrproj_' in the beginning.
+" ------------------------------------------------------------------------------
+function! s:convertStringIntoProperProjectName(stringToFix)
+  let l:projectName = s:TrimString(a:stringToFix)
+  let l:projectName = substitute(l:projectName, '\s\+', '_', 'g')
+  let l:projectName = "qfmngrproj_" . l:projectName
+  return l:projectName
+endfunction
+
+
+" ------------------------------------------------------------------------------
 " Function:    s:extractSaveNameFromFilename
 " Description: Takes a string containing a filename (and probably a path to
-"              it) and extracts the name the Quick Fix list was saved into.
+"              it) and extracts the name the QuickFix list was saved into.
 "              Example: If filename is "/tmp/qfmngr_foo.txt", then the
 "              returned string (i.e. the save name) will be "foo".
 " ------------------------------------------------------------------------------
@@ -405,14 +476,14 @@ endfunction
 
 " ------------------------------------------------------------------------------
 " Function:    s:extractProjNameFromDirectoryName
-" Description: Takes a string containing a path and a directory name, and
-"              extracts only the directory name (and returns it).
-"              Example: If the input string is "/tmp/qfmngr_proj_pa28", then
+" Description: Takes a string containing a directory name (and perhaps even a
+"              path), and extracts only the project name (and returns it).
+"              Example: If the input string is "/tmp/qfmngrproj_pa28", then
 "              the returned string (i.e. the project name) will be "pa28".
 " ------------------------------------------------------------------------------
 function! s:extractProjNameFromDirectoryName(fullPath)
-    let l:projName = matchstr(a:fullPath, 'qfmngr_proj_.\+')
-    let l:projName = matchstr(l:projName, '[^\.]\+', 12)
+    let l:projName = matchstr(a:fullPath, 'qfmngrproj_.\+')
+    let l:projName = matchstr(l:projName, '[^\.]\+', 11)
     return l:projName
 endfunction
 
@@ -480,10 +551,17 @@ endfunction
 " ------------------------------------------------------------------------------
 " Function:    s:createDirectoryIfItDoesNotExist
 " Description: Creates a directory given as input (optionally together with its
-"              path) if it does not already exist.
+"              path) if it does not already exist. The function returns 0 if
+"              the create operation is successful, otherwise -1 is returned.
 " ------------------------------------------------------------------------------
 function! s:createDirectoryIfItDoesNotExist(newDirectory)
   if !isdirectory(a:newDirectory)
-    call mkdir(a:newDirectory, "", 0755)
+    try
+      call mkdir(a:newDirectory, "", 0755)
+    catch
+      return -1
+    endtry
+
+    return 0
   endif
 endfunction

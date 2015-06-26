@@ -10,7 +10,7 @@
 Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
 License:  MIT License
 Website:  https://github.com/monodesire/qfmngr/
-Version:  3.0.0
+Version:  4.0.0
 
 
 ==============================================================================
@@ -173,7 +173,23 @@ function call, but also through the |.vimrc| file (see
 
 Projects are stored as sub-directories of g:qfmngr_storageLocation (see
 *qfmngr-configuration* for more details regarding this global variable). The
-default project is located in the root of g:qfmngr_storageLocation.
+default project is located in the root of g:qfmngr_storageLocation. The
+directory name for a project is named according to this: >
+
+  qfmngrproj_<name>
+
+Where <name> is the actual project name.
+
+Create a new project~
+
+Use this function call to create a new project: >
+
+  :call QFMNGR_CreateNewProject()
+
+When you do so, you will be asked to input a project name, i.e. a name that
+identifies that particular project you are about to create. Any group of white
+spaces you put into the name, will be replaced by an underscore. Legal
+characters are a-z, A-Z, 0-9 and underscore.
 
 
 ==============================================================================
@@ -212,11 +228,12 @@ Here are some mapping examples of what you could put into your |vimrc|: >
   nnoremap <silent> <F7> :call QFMNGR_SaveQuickFix()<CR>
   nnoremap <silent> <F8> :call QFMNGR_LoadQuickFix()<CR>
   nnoremap <silent> <F9> :call QFMNGR_ChangeActiveProject()<CR>
+  nnoremap <silent> <F10> :call QFMNGR_CreateNewProject()<CR>
 
 With these five mappings, the F5 key would run the add to QuickFix list
 function, the F6 key would run the clear list function, the F7 key would run
-the save function, the F8 key would run the load function, while the F9 key
-would run the change project function.
+the save function, the F8 key would run the load function, the F9 key would
+run the change project function, while the F10 key would create a new project.
 
 Here are some other mapping examples: >
 
@@ -225,10 +242,11 @@ Here are some other mapping examples: >
   nnoremap <Leader>qs :call QFMNGR_SaveQuickFix()<CR>
   nnoremap <Leader>ql :call QFMNGR_LoadQuickFix()<CR>
   nnoremap <Leader>qpc :call QFMNGR_ChangeActiveProject()<CR>
+  nnoremap <Leader>qpn :call QFMNGR_CreateNewProject()<CR>
 
-With the above mapping, the |<Leader>| key followed by either qa, qc, qs, ql
-or qpc is used to call the add, clear, save, load or change project functions
-respectively. The leader key is by default set to backslash (\).
+With the above mapping, the |<Leader>| key followed by either qa, qc, qs, ql,
+qpc or qpn is used to call the the different functions. The leader key is by
+default set to backslash (\).
 
 
 ==============================================================================
@@ -236,6 +254,9 @@ respectively. The leader key is by default set to backslash (\).
 
 This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
+
+4.0.0 (2015-06-26)
+      - Added the ability to create a project.
 
 3.0.0 (2015-06-25)
       - Added the ability to change project within the plugin.
