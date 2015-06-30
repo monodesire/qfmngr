@@ -6,7 +6,7 @@
 " Author:       Mats Lintonsson <mats.lintonsson@gmail.com>
 " License:      MIT License
 " Website:      https://github.com/monodesire/qfmngr/
-" Version:      4.0.1
+" Version:      4.1.1
 " ##############################################################################
 
 
@@ -62,20 +62,89 @@ function! QFMNGR_SaveQuickFix()
 
   echo "Current active project: " . l:tempActiveProject . "\n\n"
 
-  let l:saveName = s:askForUserInput("Enter QuickFix list save name " .
-    \ "(abort save by giving a blank name): ")
-  let l:saveName = s:TrimString(l:saveName)
+  " list all stored QuickFix lists within the current project;
+  " let the user choose among them (to overwrite) or type a new save name
 
-  if l:saveName == ""
-    echo "ERROR! Empty user input. Save aborted.\n"
-    return
+  if g:qfmngr_activeProject == ""
+    let l:fileSearch = globpath(g:qfmngr_storageLocation, 'qfmngr_*.txt')
+  else
+    let l:fileSearch = globpath(g:qfmngr_storageLocation . "/" .
+      \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject),
+      \ 'qfmngr_*.txt')
   endif
 
-  if l:saveName =~# "[^a-zA-Z0-9_ ]"
-    " we end up here if the user has submitted a file name using other
-    " characters than a-z, A-Z, 0-9, underscore and/or space
-    echo "ERROR! Illegal characters in user input. Save aborted.\n"
-    return
+  let l:listOfFiles = split(l:fileSearch)
+
+  let l:counter = 0
+  for l:file in l:listOfFiles
+    let l:counter += 1
+    let l:savename = s:extractSaveNameFromFilename(l:file)
+    echo "[" . l:counter . "] " . l:savename
+  endfor
+
+  let l:saveName = ""
+  let l:letUserInputNewSaveName = 0
+
+  if l:counter != 0
+    " at least one QuickFix list was found on disk (for this project);
+    " ask user if, and if so which, QuickFix list to overwrite
+
+    let l:selectOption = ""
+    if l:counter == 1
+      let l:selectOption = "1"
+    else
+      let l:selectOption = "1-" . l:counter
+    endif
+
+    echo "\nAbove is a list of QuickFix lists stored in the current project."
+
+    let l:userInput = s:askForUserInput("\nGive a number (" .
+      \ l:selectOption .
+      \ "; 0=abort) to overwrite an existing QuickFix list or leave blank " .
+      \ "to enter a new save name: ")
+
+    if l:userInput =~# "[0-9]"
+      " we end up here if the user has submitted a numerical input
+
+      if l:userInput == 0
+        echo "Save operation aborted.\n"
+        return
+      endif
+
+      if l:userInput < 1 || l:userInput > l:counter
+        echo "ERROR! Invalid range if numerical input. Save operation aborted.\n"
+        return
+      endif
+
+      let l:filename = s:TrimString(l:listOfFiles[l:userInput-1])
+      let l:saveName = s:extractSaveNameFromFilename(l:filename)
+    elseif l:userInput == ""
+      " we end up here if the user has submitted a blank input;
+      " ask the user to enter a new save name
+
+      let l:letUserInputNewSaveName = 1
+    else
+      echo "ERROR! Invalid input. Save operation aborted.\n"
+      return
+    endif
+  endif
+
+  if l:letUserInputNewSaveName == 1 || l:counter == 0
+    let l:saveName = s:askForUserInput("Enter QuickFix list save name " .
+      \ "(abort save by giving a blank name): ")
+    let l:saveName = s:TrimString(l:saveName)
+
+    if l:saveName == ""
+      echo "ERROR! Empty user input. Save operation aborted.\n"
+      return
+    endif
+
+    if l:saveName =~# "[^a-zA-Z0-9_ ]"
+      " we end up here if the user has submitted a file name using other
+      " characters than a-z, A-Z, 0-9, underscore and/or space
+      echo "ERROR! Illegal characters in user input. Save aborted.\n"
+      return
+    endif
   endif
 
   let l:filename = s:convertStringIntoProperFilename(l:saveName)
@@ -112,7 +181,7 @@ function! QFMNGR_SaveQuickFix()
     else
       echo "Saved QuickFix list: " . g:qfmngr_storageLocation . "/" .
         \ s:convertStringIntoProperProjectName(g:qfmngr_activeProject) .
-        \ l:filename . "\n"
+        \ "/" . l:filename . "\n"
     endif
   endif
 endfunction
@@ -157,11 +226,11 @@ function! QFMNGR_LoadQuickFix()
   endfor
 
   if l:counter == 0
-    echo "Did not find any QuickFix lists on disk. Nothing loaded.\n"
+    echo "Did not find any QuickFix lists on disk. Nothing to load.\n"
     return
   endif
 
-  " ask user what file QuickFix list to load and load it
+  " ask user what QuickFix list to load and load it
 
   let l:selectOptions = "(files=1-" . l:counter . "; abort=0)"
 

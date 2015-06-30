@@ -10,7 +10,7 @@
 Author:   Mats Lintonsson <mats.lintonsson@gmail.com>
 License:  MIT License
 Website:  https://github.com/monodesire/qfmngr/
-Version:  4.0.0
+Version:  4.1.1
 
 
 ==============================================================================
@@ -132,10 +132,11 @@ function like this: >
 
   :call QFMNGR_SaveQuickFix()
 
-When you do so, you will be asked to input a save name, i.e. a name that
-identifies that particular list you are about to save. Any group of white
-spaces you put into the name, will be replaced by an underscore. Legal
-characters are a-z, A-Z, 0-9 and underscore.
+When you do so, you will be asked to either overwrite an existing QuickFix
+list already stored on disk (within the active project) or input a save name.
+The name you input identifies that particular list you are about to save. Any
+group of white spaces you put into the name, will be replaced by an
+underscore. Legal characters are a-z, A-Z, 0-9 and underscore.
 
 The QuickFix list will be stored in a text file on disk, in the directory
 specified by global variable g:qfmngr_storageLocation. You may change the
@@ -254,6 +255,11 @@ default set to backslash (\).
 
 This section specifies the version history of this plugin. Semantic versioning
 (http://semver.org/) is the version format used.
+
+4.1.1 (2015-06-30)
+      - Extended the save functionality to now handle both "save" (i.e.
+        overwrite an existing QuickFix list) and "save as" (enter a new name
+        for saving) styles of saving QuickFix lists.
 
 4.0.1 (2015-06-26)
       - Minor bug fixes.
